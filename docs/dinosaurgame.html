@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mario Runner Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #87CEEB;
+            font-family: 'Arial', sans-serif;
+        }
+        #gameCanvas {
+            border: 2px solid #000;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="300"></canvas>
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const mario = {
+            x: 50,
+            y: 220,
+            width: 30,
+            height: 50,
+            jumping: false,
+            yVelocity: 0,
+            jumpStrength: -15
+        };
+
+        const obstacle = {
+            x: canvas.width,
+            y: 240,
+            width: 30,
+            height: 60,
+            speed: 5
+        };
+
+        const gravity = 0.8;
+        const groundY = 220;
+
+        let score = 0;
+        let gameSpeed = 1;
+        let gameRunning = true;
+
+        function drawMario() {
+            ctx.fillStyle = 'red';
+            ctx.fillRect(mario.x, mario.y, mario.width, mario.height);
+        }
+
+        function drawObstacle() {
+            ctx.fillStyle = 'green';
+            ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+        }
+
+        function drawGround() {
+            ctx.fillStyle = '#8B4513';
+            ctx.fillRect(0, 270, canvas.width, 30);
+        }
+
+        function drawScore() {
+            ctx.fillStyle = 'black';
+            ctx.font = '20px Arial';
+            ctx.fillText(`Score: ${Math.floor(score)}`, 10, 30);
+        }
+
+        function jump() {
+            if (!mario.jumping) {
+                mario.jumping = true;
+                mario.yVelocity = mario.jumpStrength;
+            }
+        }
+
+        function updateMario() {
+            mario.yVelocity += gravity;
+            mario.y += mario.yVelocity;
+
+            if (mario.y > groundY) {
+                mario.y = groundY;
+                mario.jumping = false;
+                mario.yVelocity = 0;
+            }
+        }
+
+        function checkCollision() {
+            return (
+                mario.x < obstacle.x + obstacle.width &&
+                mario.x + mario.width > obstacle.x &&
+                mario.y < obstacle.y + obstacle.height &&
+                mario.y + mario.height > obstacle.y
+            );
+        }
+
+        function resetGame() {
+            score = 0;
+            gameSpeed = 1;
+            obstacle.x = canvas.width;
+            mario.y = groundY;
+            mario.jumping = false;
+            mario.yVelocity = 0;
+            gameRunning = true;
+        }
+
+        function gameLoop() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawGround();
+            drawMario();
+            drawObstacle();
+            drawScore();
+
+            if (gameRunning) {
+                updateMario();
+                obstacle.x -= obstacle.speed * gameSpeed;
+                score += 0.1 * gameSpeed;
+                gameSpeed += 0.0005;
+
+                if (obstacle.x + obstacle.width < 0) {
+                    obstacle.x = canvas.width;
+                }
+
+                if (checkCollision()) {
+                    gameRunning = false;
+                }
+            } else {
+                ctx.fillStyle = 'black';
+                ctx.font = '30px Arial';
+                ctx.fillText('Game Over! Press Space to Restart', canvas.width / 2 - 200, canvas.height / 2);
+            }
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.code === 'Space') {
+                if (gameRunning) {
+                    jump();
+                } else {
+                    resetGame();
+                }
+            }
+        });
+
+        gameLoop();
+    </script>
+</body>
+</html>
